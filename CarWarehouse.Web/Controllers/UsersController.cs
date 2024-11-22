@@ -11,30 +11,44 @@ namespace CarWarehouse.Web.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
 
-        public UsersController(IUserRepository userRepository, UserManager<User> userManager, SignInManager<User> signInManager)
+        public UsersController(UserManager<User> userManager)
         {
-            _userRepository = userRepository;
-            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(string id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null) 
-                return NotFound();
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = $"User with ID {id} not found." });
+            }
 
-            return Ok(user);
+            return Ok(new
+            {
+                user.Id,
+                user.Email,
+                user.UserName,
+                user.FullName
+            });
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public IActionResult GetAll()
         {
-            var users = await _userRepository.GetAllAsync();
-            return Ok(users);
+            var users = _userManager.Users.ToList();
+            var result = users.Select(u => new
+            {
+                u.Id,
+                u.Email,
+                u.UserName,
+                u.FullName
+            });
+
+            return Ok(result);
         }
 
         [HttpPost]
@@ -42,45 +56,63 @@ namespace CarWarehouse.Web.Controllers
         {
             var user = new User
             {
-                Email = request.Email,
                 UserName = request.Email,
                 FullName = request.FullName
             };
 
-            var result = await _userRepository.CreateAsync(user, request.Password);
-  
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
 
-            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetById), new { id = user.Id }, new
+            {
+                user.Id,
+                user.Email,
+                user.UserName,
+                user.FullName
+            });
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] RegisterRequest request)
+        public async Task<IActionResult> Update(string id, [FromBody] RegisterRequest request)
         {
-            var existingUser = await _userRepository.GetByIdAsync(id);
-            if (existingUser == null)
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
             {
                 return NotFound(new { Message = $"User with ID {id} not found." });
             }
 
-            existingUser.Email = request.Email;
-            existingUser.UserName = request.Email;
-            existingUser.FullName = request.FullName;
+            user.Email = request.Email;
+            user.UserName = request.Email;
+            user.FullName = request.FullName;
 
-            var result = await _userRepository.UpdateAsync(existingUser);
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
 
             return NoContent();
         }
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null) 
-                return NotFound();
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = $"User with ID {id} not found." });
+            }
 
-            var result = await _userRepository.DeleteAsync(user);
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
 
             return NoContent();
         }
-
     }
 }

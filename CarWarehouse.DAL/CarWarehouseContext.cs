@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CarWarehouse.DAL.Models;
+﻿using CarWarehouse.DAL.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +13,7 @@ namespace CarWarehouse.DAL
         }
 
         public DbSet<Car> Cars { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     }
 }

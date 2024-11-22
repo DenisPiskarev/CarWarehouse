@@ -1,6 +1,7 @@
 using System.Text;
 using CarWarehouse.BLL.Interfaces;
 using CarWarehouse.BLL.Repositories;
+using CarWarehouse.BLL.Services;
 using CarWarehouse.DAL;
 using CarWarehouse.DAL.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,7 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<ICarRepository, CarRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+//builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
 
@@ -19,6 +21,8 @@ builder.Services.AddDbContext<CarWarehouseContext>(options =>
 
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<CarWarehouseContext>();
+
+builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
     opt => {
