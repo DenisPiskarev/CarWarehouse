@@ -118,5 +118,25 @@ namespace CarWarehouse.Web.Controllers
 
             return NoContent();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> EditRole(int id, string role)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, role);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(new { message = "Failed to add role", errors = result.Errors });
+            }
+
+            return Ok();
+        }
     }
 }

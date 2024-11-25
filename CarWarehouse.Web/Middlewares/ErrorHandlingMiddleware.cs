@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.Json;
 
 namespace CarWarehouse.Web.Middlewares
 {
@@ -21,30 +22,23 @@ namespace CarWarehouse.Web.Middlewares
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An unhandled exception occurred while processing the request.");
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
 
         private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            _logger.LogError(exception, exception.Message);
-
-            var statusCode = HttpStatusCode.InternalServerError;
-
-            if (exception is UnauthorizedAccessException)
-            {
-                statusCode = HttpStatusCode.Unauthorized;
-            }
-            else if (exception is KeyNotFoundException)
-            {
-                statusCode = HttpStatusCode.NotFound;
-            }
-
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)statusCode;
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-            var response = new { message = exception.Message };
-            return context.Response.WriteAsJsonAsync(response);
+            var result = JsonSerializer.Serialize(new
+            {
+                error = "An unexpected error occurred.",
+                details = exception.Message 
+            });
+
+            return context.Response.WriteAsync(result);
         }
     }
 }
