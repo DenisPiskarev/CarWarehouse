@@ -1,4 +1,4 @@
-﻿using CarWarehouse.BLL.ViewModel;
+﻿using CarWarehouse.BLL.DTO;
 using Microsoft.AspNetCore.Identity;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;

@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using CarWarehouse.DAL.Models;
 
-namespace CarWarehouse.BLL.ViewModel
+namespace CarWarehouse.Web.ViewModels
 {
-    public class RegisterRequest
+    public class UserViewModel
     {
         [Required]
         public string FullName { get; set; }

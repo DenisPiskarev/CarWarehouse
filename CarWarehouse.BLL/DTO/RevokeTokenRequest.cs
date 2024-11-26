@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CarWarehouse.BLL.ViewModel
+namespace CarWarehouse.BLL.DTO
 {
     public class RevokeTokenRequest
     {

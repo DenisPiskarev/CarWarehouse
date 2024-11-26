@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CarWarehouse.BLL.Interfaces;
+using CarWarehouse.DAL.Interfaces;
 using CarWarehouse.DAL;
 using CarWarehouse.DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
-namespace CarWarehouse.BLL.Repositories
+namespace CarWarehouse.DAL.Repositories
 {
     public class CarRepository : ICarRepository
     {
@@ -19,11 +20,22 @@ namespace CarWarehouse.BLL.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Car>> GetAllAsync()
+        public async Task<IEnumerable<Car>> GetAllAsync(ClaimsPrincipal user)
         {
-            return await _context.Cars.ToListAsync();
-        }
+            if (user.IsInRole("Manager"))
+            {
+                return await _context.Cars.ToListAsync();
+            }
+            else if (user.IsInRole("User"))
+            {
+                return await _context.Set<Car>()
+                    .Where(car => car.IsAvailable)
+                    .ToListAsync();
+            }
 
+            throw new UnauthorizedAccessException("You do not have permission to view cars.");
+        }
+        
         public async Task<Car?> GetByIdAsync(int id)
         {
             return await _context.Cars.FindAsync(id);
@@ -66,6 +78,18 @@ namespace CarWarehouse.BLL.Repositories
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task MarkAsUnavailableAsync(int carId)
+        {
+            var car = await GetByIdAsync(carId);
+            if (car == null)
+            {
+                throw new KeyNotFoundException($"Car with ID {carId} not found.");
+            }
+
+            car.IsAvailable = false;
+            await UpdateAsync(car);
         }
     }
 }

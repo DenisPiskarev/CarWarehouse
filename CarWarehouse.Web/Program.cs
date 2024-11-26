@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using CarWarehouse.BLL.Interfaces;
-using CarWarehouse.BLL.Repositories;
+using CarWarehouse.DAL.Repositories;
 using CarWarehouse.BLL.Services;
 using CarWarehouse.DAL;
 using CarWarehouse.DAL.Models;
@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using CarWarehouse.DAL.Interfaces;
+using CarWarehouse.BLL.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,8 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration));
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddControllers();
 

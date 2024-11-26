@@ -1,15 +1,12 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using CarWarehouse.BLL.Interfaces;
-using CarWarehouse.BLL.ViewModel;
-using CarWarehouse.DAL;
+using CarWarehouse.BLL.DTO;
 using CarWarehouse.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -29,15 +26,15 @@ namespace CarWarehouse.BLL.Services
         public async Task<AuthenticateResponse> AuthenticateAsync(AuthenticateRequest model, string ipAddress)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-            {
                 return null;
-            }
 
             var jwtToken = generateJwtToken(user);
             var refreshToken = generateRefreshToken(ipAddress);
 
             user.RefreshTokens.Add(refreshToken);
+
             await _userManager.UpdateAsync(user);
 
             return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
@@ -47,11 +44,13 @@ namespace CarWarehouse.BLL.Services
         {
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
 
-            if (user == null) return null;
+            if (user == null) 
+                return null;
 
             var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
-            if (!refreshToken.IsActive) return null;
+            if (!refreshToken.IsActive) 
+                return null;
 
             var newRefreshToken = generateRefreshToken(ipAddress);
             refreshToken.Revoked = DateTime.UtcNow;
@@ -70,11 +69,13 @@ namespace CarWarehouse.BLL.Services
         {
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
 
-            if (user == null) return false;
+            if (user == null) 
+                return false;
 
             var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
-            if (!refreshToken.IsActive) return false;
+            if (!refreshToken.IsActive) 
+                return false;
 
             refreshToken.Revoked = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
@@ -92,10 +93,10 @@ namespace CarWarehouse.BLL.Services
             var roles = _userManager.GetRolesAsync(user).Result;
 
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.Id.ToString()),
-        new Claim(ClaimTypes.NameIdentifier, user.UserName)
-    };
+            {
+                new Claim(ClaimTypes.Name, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.UserName)
+            };
 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
@@ -107,6 +108,7 @@ namespace CarWarehouse.BLL.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
+
             return tokenHandler.WriteToken(token);
         }
 
@@ -116,6 +118,7 @@ namespace CarWarehouse.BLL.Services
             {
                 var randomBytes = new byte[64];
                 rngCryptoServiceProvider.GetBytes(randomBytes);
+
                 return new RefreshToken
                 {
                     Token = Convert.ToBase64String(randomBytes),
@@ -132,6 +135,5 @@ namespace CarWarehouse.BLL.Services
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
-
     }
 }

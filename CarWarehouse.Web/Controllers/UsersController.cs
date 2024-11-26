@@ -1,10 +1,11 @@
 ﻿using CarWarehouse.BLL.Enums;
-using CarWarehouse.BLL.Interfaces;
-using CarWarehouse.BLL.ViewModel;
+using CarWarehouse.BLL.DTO;
 using CarWarehouse.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using CarWarehouse.Web.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarWarehouse.Web.Controllers
 {
@@ -21,9 +22,9 @@ namespace CarWarehouse.Web.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
             {
                 return NotFound(new { Message = $"User with ID {id} not found." });
@@ -54,7 +55,7 @@ namespace CarWarehouse.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Create([FromBody] UserViewModel request)
         {
             var user = new User
             {
@@ -80,9 +81,9 @@ namespace CarWarehouse.Web.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] RegisterRequest request)
+        public async Task<IActionResult> Update(int id, [FromBody] UserViewModel request)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
             {
                 return NotFound(new { Message = $"User with ID {id} not found." });
@@ -102,9 +103,9 @@ namespace CarWarehouse.Web.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
             {
                 return NotFound(new { Message = $"User with ID {id} not found." });
@@ -119,24 +120,29 @@ namespace CarWarehouse.Web.Controllers
             return NoContent();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> EditRole(int id, string role)
+        [HttpPost("edit-role")]
+        public async Task<IActionResult> EditRole([FromBody] EditRoleViewModel request)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (request == null || string.IsNullOrWhiteSpace(request.Role))
+            {
+                return BadRequest(new { message = "Invalid request data" });
+            }
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == request.Id);
 
             if (user == null)
             {
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = $"User with ID {request.Id} not found" });
             }
 
-            var result = await _userManager.AddToRoleAsync(user, role);
+            var result = await _userManager.AddToRoleAsync(user, request.Role);
 
             if (!result.Succeeded)
             {
                 return BadRequest(new { message = "Failed to add role", errors = result.Errors });
             }
 
-            return Ok();
+            return Ok(new { message = $"Role {request.Role} successfully added to user {request.Id}" });
         }
     }
 }
