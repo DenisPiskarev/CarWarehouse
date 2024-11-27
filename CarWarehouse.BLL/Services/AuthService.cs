@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using AutoMapper;
 
 namespace CarWarehouse.BLL.Services
 {
@@ -16,11 +17,13 @@ namespace CarWarehouse.BLL.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly AuthSettings _appSettings;
+        private readonly IMapper _mapper;
 
-        public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IOptions<AuthSettings> appSettings)
+        public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IOptions<AuthSettings> appSettings, IMapper mapper)
         {
             _userManager = userManager;
             _appSettings = appSettings.Value;
+            _mapper = mapper;
         }
 
         public async Task<AuthenticateResponse> AuthenticateAsync(AuthenticateRequest model, string ipAddress)
@@ -37,19 +40,23 @@ namespace CarWarehouse.BLL.Services
 
             await _userManager.UpdateAsync(user);
 
-            return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
+            var response = _mapper.Map<AuthenticateResponse>(user);
+            response.JwtToken = jwtToken;
+            response.RefreshToken = refreshToken.Token;
+
+            return response;
         }
 
         public async Task<AuthenticateResponse> RefreshTokenAsync(string token, string ipAddress)
         {
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
 
-            if (user == null) 
+            if (user == null)
                 return null;
 
             var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
-            if (!refreshToken.IsActive) 
+            if (!refreshToken.IsActive)
                 return null;
 
             var newRefreshToken = generateRefreshToken(ipAddress);
@@ -62,7 +69,11 @@ namespace CarWarehouse.BLL.Services
 
             var jwtToken = generateJwtToken(user);
 
-            return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
+            var response = _mapper.Map<AuthenticateResponse>(user);
+            response.JwtToken = jwtToken;
+            response.RefreshToken = newRefreshToken.Token;
+
+            return response;
         }
 
         public async Task<bool> RevokeTokenAsync(string token, string ipAddress)

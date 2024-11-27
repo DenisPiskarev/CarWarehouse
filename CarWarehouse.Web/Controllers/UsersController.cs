@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using CarWarehouse.Web.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace CarWarehouse.Web.Controllers
 {
@@ -15,10 +16,12 @@ namespace CarWarehouse.Web.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-        public UsersController(UserManager<User> userManager)
+        public UsersController(UserManager<User> userManager, IMapper mapper)
         {
             _userManager = userManager;
+            _mapper = mapper;
         }
 
         [HttpGet("{id}")]
@@ -30,38 +33,23 @@ namespace CarWarehouse.Web.Controllers
                 return NotFound(new { Message = $"User with ID {id} not found." });
             }
 
-            return Ok(new
-            {
-                user.Id,
-                user.Email,
-                user.UserName,
-                user.FullName
-            });
+            var userViewModel = _mapper.Map<UserViewModel>(user);
+            return Ok(userViewModel);
         }
 
         [HttpGet]
         public IActionResult GetAll()
         {
             var users = _userManager.Users.ToList();
-            var result = users.Select(u => new
-            {
-                u.Id,
-                u.Email,
-                u.UserName,
-                u.FullName
-            });
 
-            return Ok(result);
+            var userViewModels = users.Select(user => _mapper.Map<UserViewModel>(user));
+            return Ok(userViewModels);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] UserViewModel request)
         {
-            var user = new User
-            {
-                UserName = request.Email,
-                FullName = request.FullName
-            };
+            var user = _mapper.Map<User>(request);
 
             var result = await _userManager.CreateAsync(user, request.Password);
             if (!result.Succeeded)
@@ -70,14 +58,9 @@ namespace CarWarehouse.Web.Controllers
             }
 
             await _userManager.AddToRoleAsync(user, Roles.User);
+            var createdUserViewModel = _mapper.Map<UserViewModel>(user);
 
-            return CreatedAtAction(nameof(GetById), new { id = user.Id }, new
-            {
-                user.Id,
-                user.Email,
-                user.UserName,
-                user.FullName
-            });
+            return Ok(createdUserViewModel);
         }
 
         [HttpPut("{id}")]
@@ -141,6 +124,8 @@ namespace CarWarehouse.Web.Controllers
             {
                 return BadRequest(new { message = "Failed to add role", errors = result.Errors });
             }
+
+            var userViewModel = _mapper.Map<UserViewModel>(user);
 
             return Ok(new { message = $"Role {request.Role} successfully added to user {request.Id}" });
         }

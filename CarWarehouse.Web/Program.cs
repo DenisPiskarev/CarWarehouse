@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using CarWarehouse.DAL.Interfaces;
 using CarWarehouse.BLL.Mappings;
+using CarWarehouse.Web.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration));
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(CarWarehouse.Web.Mappings.MappingProfile), typeof(CarWarehouse.BLL.Mappings.MappingProfile));
 
 builder.Services.AddControllers();
 

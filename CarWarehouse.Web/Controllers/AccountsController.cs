@@ -7,6 +7,8 @@ using CarWarehouse.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using CarWarehouse.BLL.Interfaces;
 using System;
+using CarWarehouse.Web.ViewModels;
+using AutoMapper;
 
 namespace CarWarehouse.Web.Controllers
 {
@@ -15,10 +17,12 @@ namespace CarWarehouse.Web.Controllers
     public class AccountsController : ControllerBase
     {
         private IAuthService _authService;
+        private readonly IMapper _mapper;
 
-        public AccountsController(IAuthService authService)
+        public AccountsController(IAuthService authService, IMapper mapper)
         {
             _authService = authService;
+            _mapper = mapper;
         }
 
         [AllowAnonymous]
@@ -32,7 +36,7 @@ namespace CarWarehouse.Web.Controllers
 
             setTokenCookie(response.RefreshToken);
 
-            return Ok(response);
+            return Ok(_mapper.Map<AuthenticateViewModel>(response));
         }
 
         [AllowAnonymous]
@@ -50,7 +54,7 @@ namespace CarWarehouse.Web.Controllers
 
             setTokenCookie(response.RefreshToken);
 
-            return Ok(response);
+            return Ok(_mapper.Map<AuthenticateViewModel>(response));
         }
 
         [HttpPost("revoke-token")]

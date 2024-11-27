@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using CarWarehouse.BLL.Enums;
 using Microsoft.AspNetCore.Authorization;
 using CarWarehouse.DAL.Interfaces;
+using CarWarehouse.Web.ViewModels;
+using AutoMapper;
 
 namespace CarWarehouse.Web.Controllers
 {
@@ -12,10 +14,12 @@ namespace CarWarehouse.Web.Controllers
     public class CarsController : ControllerBase
     {
         private readonly ICarRepository _carRepository;
+        private readonly IMapper _mapper;
 
-        public CarsController(ICarRepository carRepository)
+        public CarsController(ICarRepository carRepository, IMapper mapper)
         {
             _carRepository = carRepository;
+            _mapper = mapper;
         }
 
         [Authorize(Roles = Roles.Manager + "," + Roles.User)]
@@ -31,38 +35,41 @@ namespace CarWarehouse.Web.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var car = await _carRepository.GetByIdAsync(id);
+
             if (car == null)
                 return NotFound();
 
-            return Ok(car);
+            var carViewModel = _mapper.Map<CarViewModel>(car);
+
+            return Ok(carViewModel);
         }
 
         [Authorize(Roles = Roles.Manager)]
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Car car)
+        public async Task<IActionResult> Create([FromBody] CarViewModel car)
         {
-            Car addCar = new Car()
-            {
-                Make = car.Make,
-                Model = car.Model,
-                Color = car.Color
-            };
-            var createdCar = await _carRepository.AddAsync(car);
-            return CreatedAtAction(nameof(GetById), new { id = createdCar.Id }, createdCar);
+            var createdCar = await _carRepository.AddAsync(_mapper.Map<Car>(car));
+            var createdCarViewModel = _mapper.Map<CarViewModel>(createdCar);
+            return Ok(createdCarViewModel);
         }
 
         [Authorize(Roles = Roles.Manager)]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Car car)
+        public async Task<IActionResult> Update(int id, [FromBody] CarViewModel carViewModel)
         {
-            if (id != car.Id)
+            if (id == null)
                 return BadRequest();
 
-            var updated = await _carRepository.UpdateAsync(car);
+            var carToUpdate = _mapper.Map<Car>(carViewModel);
+
+            var updated = await _carRepository.UpdateAsync(carToUpdate);
             if (!updated)
                 return NotFound();
 
-            return NoContent();
+            var updatedCar = await _carRepository.GetByIdAsync(id);
+            var updatedCarViewModel = _mapper.Map<CarViewModel>(updatedCar);
+
+            return Ok(updatedCarViewModel);
         }
 
         [Authorize(Roles = Roles.Manager)]
