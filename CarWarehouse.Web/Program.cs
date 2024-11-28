@@ -11,8 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using CarWarehouse.DAL.Interfaces;
-using CarWarehouse.BLL.Mappings;
-using CarWarehouse.Web.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,13 +68,13 @@ builder.Services.AddAuthorization(auth =>
 
 var app = builder.Build();
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CarWarehouseContext>();
     dbContext.Database.Migrate();
 }
-
-app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
