@@ -78,7 +78,7 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync();
 
     var userManagementService = services.GetRequiredService<IAuthService>();
-    await userManagementService.SeedAdminUserAsync();
+    await userManagementService.Initializer();
 }
 
 app.UseHttpsRedirection();

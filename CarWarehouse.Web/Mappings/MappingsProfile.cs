@@ -14,7 +14,9 @@ namespace CarWarehouse.Web.Mappings
             CreateMap<AuthenticateRequest, AuthenticateViewModel>().ReverseMap();
 
             CreateMap<User, UserViewModel>()
-                .ForMember(dest => dest.Password, opt => opt.Ignore());
+                .ForMember(dest => dest.Password, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ReverseMap();
 
             CreateMap<User, UserViewModel>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))

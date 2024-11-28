@@ -11,6 +11,7 @@ namespace CarWarehouse.Web.ViewModels
 {
     public class UserViewModel
     {
+        public int Id { get; set; }
         [Required]
         public string FullName { get; set; }
         [Required]
@@ -18,7 +19,6 @@ namespace CarWarehouse.Web.ViewModels
         [Required]
         public string Email { get; set; }
         [Required]
-        [JsonIgnore]
         public string Password { get; set; }
     }
 }

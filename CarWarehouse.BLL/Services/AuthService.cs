@@ -150,12 +150,18 @@ namespace CarWarehouse.BLL.Services
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task SeedAdminUserAsync()
+        public async Task Initializer()
         {
-            if (!await _roleManager.RoleExistsAsync("Admin"))
+            var roles = new[] { "Admin", "Manager", "User" };
+
+            foreach (var role in roles)
             {
-                await _roleManager.CreateAsync(new Role("Admin"));
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new Role(role));
+                }
             }
+
 
             var adminUser = await _userManager.FindByEmailAsync("admin@yandex.ru");
             if (adminUser == null)
