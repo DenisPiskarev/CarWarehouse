@@ -70,6 +70,12 @@ builder.Services.AddAuthorization(auth =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CarWarehouseContext>();
+    dbContext.Database.Migrate();
+}
+
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();

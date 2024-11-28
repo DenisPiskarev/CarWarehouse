@@ -4,9 +4,9 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>d4a2833f-2a83-4672-a7f7-1e9bd563bc35</ProjectGuid>
+    <ProjectGuid>ae438e3e-59ce-4315-a87a-8f9303322626</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/weatherforecast</DockerServiceUrl>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/api/Cars</DockerServiceUrl>
     <DockerServiceName>carwarehouse.web</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
