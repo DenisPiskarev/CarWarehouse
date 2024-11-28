@@ -72,8 +72,13 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<CarWarehouseContext>();
-    dbContext.Database.Migrate();
+    var services = scope.ServiceProvider;
+
+    var dbContext = services.GetRequiredService<CarWarehouseContext>();
+    await dbContext.Database.MigrateAsync();
+
+    var userManagementService = services.GetRequiredService<IAuthService>();
+    await userManagementService.SeedAdminUserAsync();
 }
 
 app.UseHttpsRedirection();

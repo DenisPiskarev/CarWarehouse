@@ -10,6 +10,7 @@ namespace CarWarehouse.Web.ViewModels
         public string FullName { get; set; }
         public string Username { get; set; }
         public string JwtToken { get; set; }
+        [JsonIgnore]
         public string RefreshToken { get; set; }
     }
 }

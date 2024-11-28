@@ -10,18 +10,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using AutoMapper;
+using CarWarehouse.DAL;
 
 namespace CarWarehouse.BLL.Services
 {
     public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly AuthSettings _appSettings;
         private readonly IMapper _mapper;
 
-        public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IOptions<AuthSettings> appSettings, IMapper mapper)
+        public AuthService(UserManager<User> userManager, RoleManager<Role> roleManager, IOptions<AuthSettings> appSettings, IMapper mapper)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _appSettings = appSettings.Value;
             _mapper = mapper;
         }
@@ -145,6 +148,32 @@ namespace CarWarehouse.BLL.Services
             return await _userManager.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task SeedAdminUserAsync()
+        {
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new Role("Admin"));
+            }
+
+            var adminUser = await _userManager.FindByEmailAsync("admin@yandex.ru");
+            if (adminUser == null)
+            {
+                adminUser = new User
+                {
+                    UserName = "admin",
+                    Email = "admin@yandex.ru",
+                    FullName = "Administrator"
+                };
+
+                var result = await _userManager.CreateAsync(adminUser, "a090xA6311.");
+
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
         }
     }
 }

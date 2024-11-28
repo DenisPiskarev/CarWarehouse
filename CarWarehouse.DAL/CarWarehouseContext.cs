@@ -11,8 +11,6 @@ namespace CarWarehouse.DAL
         {
 
         }
-
         public DbSet<Car> Cars { get; set; }
-
     }
 }

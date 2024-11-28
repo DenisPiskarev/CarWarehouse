@@ -20,6 +20,8 @@ namespace CarWarehouse.Web.Mappings
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
+
+            CreateMap<AuthenticateResponse, AuthenticateViewModel>();
         }
     }
 }
